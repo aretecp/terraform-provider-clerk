@@ -285,7 +285,7 @@ func mapResponseToModel(tmpl *clerkgo.JWTTemplate, model *JWTTemplateResourceMod
 	model.AllowedClockSkew = types.Int64Value(tmpl.AllowedClockSkew)
 	model.CustomSigningKey = types.BoolValue(tmpl.CustomSigningKey)
 	model.SigningAlgorithm = types.StringValue(tmpl.SigningAlgorithm)
-	model.CreatedAt = types.StringValue(time.Unix(tmpl.CreatedAt, 0).UTC().Format(time.RFC3339))
-	model.UpdatedAt = types.StringValue(time.Unix(tmpl.UpdatedAt, 0).UTC().Format(time.RFC3339))
+	model.CreatedAt = types.StringValue(time.UnixMilli(tmpl.CreatedAt).UTC().Format(time.RFC3339))
+	model.UpdatedAt = types.StringValue(time.UnixMilli(tmpl.UpdatedAt).UTC().Format(time.RFC3339))
 	// signing_key is write-only — preserve whatever is in state
 }
