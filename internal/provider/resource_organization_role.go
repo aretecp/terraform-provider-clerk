@@ -85,7 +85,7 @@ func (r *OrganizationRoleResource) Schema(_ context.Context, _ resource.SchemaRe
 			"permissions": schema.SetAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
-				Description: "Set of permission keys assigned to this role.",
+				Description: "Set of permission IDs assigned to this role.",
 			},
 			"created_at": schema.StringAttribute{
 				Computed:    true,
@@ -251,13 +251,13 @@ func mapOrgRoleResponseToModel(role *clerkgo.OrganizationRole, model *Organizati
 		model.Description = types.StringValue(*role.Description)
 	}
 
-	// Extract permission keys from the embedded permission objects
+	// Extract permission IDs from the embedded permission objects
 	if len(role.Permissions) > 0 {
-		permKeys := make([]string, len(role.Permissions))
+		permIDs := make([]string, len(role.Permissions))
 		for i, p := range role.Permissions {
-			permKeys[i] = p.Key
+			permIDs[i] = p.ID
 		}
-		permSet, _ := types.SetValueFrom(context.Background(), types.StringType, permKeys)
+		permSet, _ := types.SetValueFrom(context.Background(), types.StringType, permIDs)
 		model.Permissions = permSet
 	} else {
 		model.Permissions = types.SetNull(types.StringType)
