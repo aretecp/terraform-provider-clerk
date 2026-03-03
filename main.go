@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/DominickGiordano/terraform-provider-clerk/internal/provider"
+	"github.com/aretecp/terraform-provider-clerk/internal/provider"
 )
 
 var version string = "dev"

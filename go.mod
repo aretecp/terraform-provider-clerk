@@ -1,4 +1,4 @@
-module github.com/DominickGiordano/terraform-provider-clerk
+module github.com/aretecp/terraform-provider-clerk
 
 go 1.24.0
 

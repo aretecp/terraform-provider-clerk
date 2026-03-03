@@ -13,7 +13,7 @@ A Terraform provider for managing [Clerk](https://clerk.com) resources as infras
 terraform {
   required_providers {
     clerk = {
-      source = "buildwithdeck/clerk"
+      source = "DominickGiordano/clerk"
     }
   }
 }
@@ -63,7 +63,7 @@ Add a dev override to `~/.terraformrc`:
 ```hcl
 provider_installation {
   dev_overrides {
-    "buildwithdeck/clerk" = "/Users/<you>/go/bin"
+    "DominickGiordano/clerk" = "/Users/<you>/go/bin"
   }
   direct {}
 }
