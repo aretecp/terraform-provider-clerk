@@ -127,6 +127,18 @@ func (r *AllowlistIdentifierResource) Create(ctx context.Context, req resource.C
 
 	entry, err := allowlistidentifier.Create(ctx, params)
 	if err != nil {
+		// Duplicate — adopt the existing identifier into state
+		list, listErr := allowlistidentifier.List(ctx, &allowlistidentifier.ListParams{})
+		if listErr == nil {
+			for _, existing := range list.AllowlistIdentifiers {
+				if existing.Identifier == plan.Identifier.ValueString() {
+					mapAllowlistResponseToModel(existing, &plan)
+					resp.State.Set(ctx, plan)
+					tflog.Debug(ctx, "Adopted existing allowlist identifier", map[string]any{"id": existing.ID})
+					return
+				}
+			}
+		}
 		resp.Diagnostics.AddError("Unable to create allowlist identifier", err.Error())
 		return
 	}
