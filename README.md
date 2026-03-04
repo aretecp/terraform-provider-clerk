@@ -13,7 +13,7 @@ A Terraform provider for managing [Clerk](https://clerk.com) resources as infras
 terraform {
   required_providers {
     clerk = {
-      source = "DominickGiordano/clerk"
+      source = "aretecp/clerk"
     }
   }
 }
@@ -23,7 +23,7 @@ provider "clerk" {
 }
 ```
 
-See the [documentation](https://registry.terraform.io/providers/DominickGiordano/clerk/latest/docs) for full resource reference.
+See the [documentation](https://registry.terraform.io/providers/aretecp/clerk/latest/docs) for full resource reference.
 
 ## Supported Resources
 
@@ -63,7 +63,7 @@ Add a dev override to `~/.terraformrc`:
 ```hcl
 provider_installation {
   dev_overrides {
-    "DominickGiordano/clerk" = "/Users/<you>/go/bin"
+    "aretecp/clerk" = "/Users/<you>/go/bin"
   }
   direct {}
 }
