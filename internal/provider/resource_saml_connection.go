@@ -7,6 +7,7 @@ import (
 
 	clerkgo "github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/samlconnection"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -16,8 +17,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+var samlAttributeMappingAttrTypes = map[string]attr.Type{
+	"user_id":       types.StringType,
+	"email_address": types.StringType,
+	"first_name":    types.StringType,
+	"last_name":     types.StringType,
+}
 
 var (
 	_ resource.Resource                = &SAMLConnectionResource{}
@@ -56,7 +65,7 @@ type SAMLConnectionResourceModel struct {
 	AllowSubdomains                  types.Bool                           `tfsdk:"allow_subdomains"`
 	AllowIdpInitiated                types.Bool                           `tfsdk:"allow_idp_initiated"`
 	DisableAdditionalIdentifications types.Bool                           `tfsdk:"disable_additional_identifications"`
-	AttributeMapping                 *SAMLConnectionAttributeMappingModel `tfsdk:"attribute_mapping"`
+	AttributeMapping                 types.Object                         `tfsdk:"attribute_mapping"`
 	AcsURL                           types.String                         `tfsdk:"acs_url"`
 	SPEntityID                       types.String                         `tfsdk:"sp_entity_id"`
 	SPMetadataURL                    types.String                         `tfsdk:"sp_metadata_url"`
@@ -289,21 +298,26 @@ func (r *SAMLConnectionResource) Create(ctx context.Context, req resource.Create
 		params.IdpMetadata = clerkgo.String(plan.IdpMetadata.ValueString())
 	}
 
-	if plan.AttributeMapping != nil {
-		mapping := &samlconnection.AttributeMappingParams{}
-		if !plan.AttributeMapping.UserID.IsNull() && !plan.AttributeMapping.UserID.IsUnknown() {
-			mapping.UserID = plan.AttributeMapping.UserID.ValueString()
+	if !plan.AttributeMapping.IsNull() && !plan.AttributeMapping.IsUnknown() {
+		var am SAMLConnectionAttributeMappingModel
+		diags = plan.AttributeMapping.As(ctx, &am, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if !resp.Diagnostics.HasError() {
+			mapping := &samlconnection.AttributeMappingParams{}
+			if !am.UserID.IsNull() && !am.UserID.IsUnknown() {
+				mapping.UserID = am.UserID.ValueString()
+			}
+			if !am.EmailAddress.IsNull() && !am.EmailAddress.IsUnknown() {
+				mapping.EmailAddress = am.EmailAddress.ValueString()
+			}
+			if !am.FirstName.IsNull() && !am.FirstName.IsUnknown() {
+				mapping.FirstName = am.FirstName.ValueString()
+			}
+			if !am.LastName.IsNull() && !am.LastName.IsUnknown() {
+				mapping.LastName = am.LastName.ValueString()
+			}
+			params.AttributeMapping = mapping
 		}
-		if !plan.AttributeMapping.EmailAddress.IsNull() && !plan.AttributeMapping.EmailAddress.IsUnknown() {
-			mapping.EmailAddress = plan.AttributeMapping.EmailAddress.ValueString()
-		}
-		if !plan.AttributeMapping.FirstName.IsNull() && !plan.AttributeMapping.FirstName.IsUnknown() {
-			mapping.FirstName = plan.AttributeMapping.FirstName.ValueString()
-		}
-		if !plan.AttributeMapping.LastName.IsNull() && !plan.AttributeMapping.LastName.IsUnknown() {
-			mapping.LastName = plan.AttributeMapping.LastName.ValueString()
-		}
-		params.AttributeMapping = mapping
 	}
 
 	conn, err := samlconnection.Create(ctx, params)
@@ -312,7 +326,7 @@ func (r *SAMLConnectionResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	mapSAMLConnectionResponseToModel(conn, &plan)
+	mapSAMLConnectionResponseToModel(ctx, conn, &plan)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -336,7 +350,7 @@ func (r *SAMLConnectionResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	mapSAMLConnectionResponseToModel(conn, &state)
+	mapSAMLConnectionResponseToModel(ctx, conn, &state)
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -401,21 +415,26 @@ func (r *SAMLConnectionResource) Update(ctx context.Context, req resource.Update
 		params.DisableAdditionalIdentifications = clerkgo.Bool(plan.DisableAdditionalIdentifications.ValueBool())
 	}
 
-	if plan.AttributeMapping != nil {
-		mapping := &samlconnection.AttributeMappingParams{}
-		if !plan.AttributeMapping.UserID.IsNull() && !plan.AttributeMapping.UserID.IsUnknown() {
-			mapping.UserID = plan.AttributeMapping.UserID.ValueString()
+	if !plan.AttributeMapping.IsNull() && !plan.AttributeMapping.IsUnknown() {
+		var am SAMLConnectionAttributeMappingModel
+		diags = plan.AttributeMapping.As(ctx, &am, basetypes.ObjectAsOptions{})
+		resp.Diagnostics.Append(diags...)
+		if !resp.Diagnostics.HasError() {
+			mapping := &samlconnection.AttributeMappingParams{}
+			if !am.UserID.IsNull() && !am.UserID.IsUnknown() {
+				mapping.UserID = am.UserID.ValueString()
+			}
+			if !am.EmailAddress.IsNull() && !am.EmailAddress.IsUnknown() {
+				mapping.EmailAddress = am.EmailAddress.ValueString()
+			}
+			if !am.FirstName.IsNull() && !am.FirstName.IsUnknown() {
+				mapping.FirstName = am.FirstName.ValueString()
+			}
+			if !am.LastName.IsNull() && !am.LastName.IsUnknown() {
+				mapping.LastName = am.LastName.ValueString()
+			}
+			params.AttributeMapping = mapping
 		}
-		if !plan.AttributeMapping.EmailAddress.IsNull() && !plan.AttributeMapping.EmailAddress.IsUnknown() {
-			mapping.EmailAddress = plan.AttributeMapping.EmailAddress.ValueString()
-		}
-		if !plan.AttributeMapping.FirstName.IsNull() && !plan.AttributeMapping.FirstName.IsUnknown() {
-			mapping.FirstName = plan.AttributeMapping.FirstName.ValueString()
-		}
-		if !plan.AttributeMapping.LastName.IsNull() && !plan.AttributeMapping.LastName.IsUnknown() {
-			mapping.LastName = plan.AttributeMapping.LastName.ValueString()
-		}
-		params.AttributeMapping = mapping
 	}
 
 	conn, err := samlconnection.Update(ctx, state.ID.ValueString(), params)
@@ -424,7 +443,7 @@ func (r *SAMLConnectionResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	mapSAMLConnectionResponseToModel(conn, &plan)
+	mapSAMLConnectionResponseToModel(ctx, conn, &plan)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -455,7 +474,7 @@ func (r *SAMLConnectionResource) ImportState(ctx context.Context, req resource.I
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func mapSAMLConnectionResponseToModel(conn *clerkgo.SAMLConnection, model *SAMLConnectionResourceModel) {
+func mapSAMLConnectionResponseToModel(ctx context.Context, conn *clerkgo.SAMLConnection, model *SAMLConnectionResourceModel) {
 	model.ID = types.StringValue(conn.ID)
 	model.Name = types.StringValue(conn.Name)
 	model.Domain = types.StringValue(conn.Domain)
@@ -491,10 +510,11 @@ func mapSAMLConnectionResponseToModel(conn *clerkgo.SAMLConnection, model *SAMLC
 		model.IdpMetadata = types.StringValue(*conn.IdpMetadata)
 	}
 
-	model.AttributeMapping = &SAMLConnectionAttributeMappingModel{
+	amObj, _ := types.ObjectValueFrom(ctx, samlAttributeMappingAttrTypes, &SAMLConnectionAttributeMappingModel{
 		UserID:       types.StringValue(conn.AttributeMapping.UserID),
 		EmailAddress: types.StringValue(conn.AttributeMapping.EmailAddress),
 		FirstName:    types.StringValue(conn.AttributeMapping.FirstName),
 		LastName:     types.StringValue(conn.AttributeMapping.LastName),
-	}
+	})
+	model.AttributeMapping = amObj
 }
