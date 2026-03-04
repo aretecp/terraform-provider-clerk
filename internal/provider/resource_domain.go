@@ -262,4 +262,10 @@ func mapDomainResponseToModel(d *clerkgo.Domain, model *DomainResourceModel) {
 	if d.ProxyURL != nil && *d.ProxyURL != "" {
 		model.ProxyURL = types.StringValue(*d.ProxyURL)
 	}
+
+	// is_secondary is not returned by the Domain API type — default to false
+	// so the computed value is always known after apply
+	if model.IsSecondary.IsUnknown() {
+		model.IsSecondary = types.BoolValue(false)
+	}
 }
